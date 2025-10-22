@@ -1,10 +1,11 @@
 """
-COMMIT 1: Estructura básica del menú con Rich
-Integración inicial con las funciones existentes
+COMMIT 2: Mejora visual con tablas Rich
+Tablas profesionales para mostrar países y estadísticas
 """
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 import funciones
 
 console = Console()
@@ -19,7 +20,7 @@ def mostrar_encabezado():
     ))
 
 def mostrar_menu_principal():
-    """COMMIT 1: Menú principal básico con Rich"""
+    """COMMIT 2: Menú principal mejorado"""
     mostrar_encabezado()
     
     console.print("[bold]Opciones disponibles:[/bold]")
@@ -29,8 +30,78 @@ def mostrar_menu_principal():
     console.print("4. 🚪 Salir")
     console.print()
 
+def mostrar_paises_rich(paises, titulo="LISTA DE PAÍSES"):
+    """COMMIT 2: Mostrar países con tabla Rich profesional"""
+    if not paises:
+        console.print("[red]❌ No hay países para mostrar[/red]")
+        return
+        
+    table = Table(title=f"📋 {titulo} - {len(paises)} países")
+    table.add_column("País", style="cyan", no_wrap=True)
+    table.add_column("Población", style="green", justify="right")
+    table.add_column("Superficie", style="blue", justify="right") 
+    table.add_column("Continente", style="magenta")
+    
+    # Mostrar máximo 15 países para no saturar
+    for pais in paises[:15]:
+        table.add_row(
+            pais['nombre'],
+            f"{pais['poblacion']:,}",
+            f"{pais['superficie']:,} km²",
+            pais['continente']
+        )
+    
+    console.print(table)
+    
+    # Mostrar advertencia si hay más países
+    if len(paises) > 15:
+        console.print(f"[dim]... y {len(paises) - 15} países más (use filtros para ver más)[/dim]")
+
+def mostrar_estadisticas_rich(stats, total_paises):
+    """COMMIT 2: Mostrar estadísticas con formato Rich profesional"""
+    if not stats["mayor_poblacion"]:
+        console.print("[yellow]⚠️ No hay datos para mostrar estadísticas[/yellow]")
+        return
+        
+    console.print(Panel("📊 [bold cyan]ESTADÍSTICAS GLOBALES[/bold cyan]"))
+    
+    # Tabla de estadísticas principales
+    stats_table = Table(show_header=False, style="bold", width=60)
+    stats_table.add_column("Métrica", style="cyan", width=25)
+    stats_table.add_column("Valor", style="white")
+    
+    stats_table.add_row("Total de países", f"[green]{total_paises}[/green]")
+    stats_table.add_row("País más poblado", 
+                       f"[red]{stats['mayor_poblacion']['nombre']}[/red] ({stats['mayor_poblacion']['poblacion']:,})")
+    stats_table.add_row("País menos poblado", 
+                       f"[green]{stats['menor_poblacion']['nombre']}[/green] ({stats['menor_poblacion']['poblacion']:,})")
+    stats_table.add_row("Población promedio", f"[yellow]{stats['promedio_poblacion']:,.0f} hab[/yellow]")
+    stats_table.add_row("Superficie promedio", f"[blue]{stats['promedio_superficie']:,.0f} km²[/blue]")
+    
+    console.print(stats_table)
+    
+    # Tabla de países por continente
+    if stats["cantidad_por_continente"]:
+        console.print(Panel("🌍 [bold cyan]DISTRIBUCIÓN POR CONTINENTE[/bold cyan]"))
+        
+        cont_table = Table(show_header=True, header_style="bold yellow")
+        cont_table.add_column("Continente", style="magenta")
+        cont_table.add_column("Cantidad", style="green", justify="center")
+        cont_table.add_column("Porcentaje", style="blue", justify="center")
+        
+        for cont, cant in stats["cantidad_por_continente"].items():
+            porcentaje = (cant / total_paises) * 100
+            cont_table.add_row(
+                cont,
+                f"{cant} países",
+                f"{porcentaje:.1f}%"
+            )
+        
+        console.print(cont_table)
+
 def main():
-    """Función principal - Versión inicial"""
+    """Función principal - Versión mejorada con tablas Rich"""
+    # Inicializar el archivo CSV
     funciones.inicializar_csv()
     
     while True:
@@ -42,7 +113,6 @@ def main():
                 console.print(Panel("🔍 [bold yellow]BUSCAR EN API[/bold yellow]"))
                 nombre = input("Ingrese nombre del país: ").strip()
                 if nombre:
-                    # Usar la función de tu compañero que conecta con la API
                     funciones.getPais(nombre)
                 else:
                     console.print("[red]❌ Debe ingresar un nombre[/red]")
@@ -50,25 +120,17 @@ def main():
             elif opcion == "2":
                 console.print(Panel("📋 [bold yellow]BUSCAR EN LOCAL[/bold yellow]"))
                 termino = input("Término de búsqueda: ").strip()
-                # Cargar países desde CSV (función de tu compañero)
                 paises = funciones.cargar_paises_csv()
-                # Buscar en local (función de tu compañero)
                 resultados = funciones.buscar_pais_local(paises, termino)
-                # Mostrar resultados (función de tu compañero)
-                funciones.mostrar_paises(resultados)
+                # Mostrar resultados con Rich (nuevo)
+                mostrar_paises_rich(resultados, f"Resultados para: '{termino}'")
                 
             elif opcion == "3":
                 console.print(Panel("📊 [bold yellow]ESTADÍSTICAS[/bold yellow]"))
                 paises = funciones.cargar_paises_csv()
                 stats = funciones.estadisticas(paises)
-                # Mostrar stats básicas (versión simple por ahora)
-                if stats["mayor_poblacion"]:
-                    console.print(f"[cyan]País más poblado:[/cyan] {stats['mayor_poblacion']['nombre']}")
-                    console.print(f"[cyan]País menos poblado:[/cyan] {stats['menor_poblacion']['nombre']}")
-                    console.print(f"[cyan]Población promedio:[/cyan] {stats['promedio_poblacion']:,.0f} hab")
-                    console.print(f"[cyan]Total de países:[/cyan] {len(paises)}")
-                else:
-                    console.print("[yellow]⚠️ No hay datos para mostrar estadísticas[/yellow]")
+                # Mostrar stats con Rich (nuevo)
+                mostrar_estadisticas_rich(stats, len(paises))
                     
             elif opcion == "4":
                 console.print(Panel.fit("[green]¡Gracias por usar el sistema! 👋[/green]", style="bold green"))

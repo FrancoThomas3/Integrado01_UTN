@@ -4,4 +4,6 @@ Integracion de Readme para documentar avance del menu.
 
 19-20: Reestructura total en base a las funciones ya hechas.
 
+21: Añadido de Tablas para mejor entendimiento.
+
 &Equipo: Ojeda Lautaro, Fran Tardatti.
