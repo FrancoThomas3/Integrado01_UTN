@@ -1,8 +1,3 @@
-"""
-COMMIT 2: Mejora visual con tablas Rich
-Tablas profesionales para mostrar países y estadísticas
-"""
-
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -11,7 +6,7 @@ import funciones
 console = Console()
 
 def mostrar_encabezado():
-    """Muestra el encabezado bonito del sistema"""
+    """Limpia pantalla y muestra título"""
     console.clear()
     console.print(Panel.fit(
         "🎯 [bold cyan]GESTIÓN DE DATOS DE PAÍSES[/bold cyan]",
@@ -20,18 +15,20 @@ def mostrar_encabezado():
     ))
 
 def mostrar_menu_principal():
-    """COMMIT 2: Menú principal mejorado"""
+    """Muestra las opciones principales"""
     mostrar_encabezado()
     
     console.print("[bold]Opciones disponibles:[/bold]")
     console.print("1. 🔍 Buscar país en API y guardar")
-    console.print("2. 📋 Buscar países en local")
+    console.print("2. 📋 Buscar países en local") 
     console.print("3. 📊 Ver estadísticas")
-    console.print("4. 🚪 Salir")
+    console.print("4. 🌎 Filtrar países")
+    console.print("5. 📈 Ordenar países")
+    console.print("6. 🚪 Salir")
     console.print()
 
-def mostrar_paises_rich(paises, titulo="LISTA DE PAÍSES"):
-    """COMMIT 2: Mostrar países con tabla Rich profesional"""
+def mostrar_paises(paises, titulo="LISTA DE PAÍSES"):
+    """Muestra países en tabla formateada"""
     if not paises:
         console.print("[red]❌ No hay países para mostrar[/red]")
         return
@@ -42,7 +39,6 @@ def mostrar_paises_rich(paises, titulo="LISTA DE PAÍSES"):
     table.add_column("Superficie", style="blue", justify="right") 
     table.add_column("Continente", style="magenta")
     
-    # Mostrar máximo 15 países para no saturar
     for pais in paises[:15]:
         table.add_row(
             pais['nombre'],
@@ -53,19 +49,17 @@ def mostrar_paises_rich(paises, titulo="LISTA DE PAÍSES"):
     
     console.print(table)
     
-    # Mostrar advertencia si hay más países
     if len(paises) > 15:
-        console.print(f"[dim]... y {len(paises) - 15} países más (use filtros para ver más)[/dim]")
+        console.print(f"[dim]... y {len(paises) - 15} países más[/dim]")
 
-def mostrar_estadisticas_rich(stats, total_paises):
-    """COMMIT 2: Mostrar estadísticas con formato Rich profesional"""
+def mostrar_estadisticas(stats, total_paises):
+    """Muestra estadísticas formateadas"""
     if not stats["mayor_poblacion"]:
         console.print("[yellow]⚠️ No hay datos para mostrar estadísticas[/yellow]")
         return
         
     console.print(Panel("📊 [bold cyan]ESTADÍSTICAS GLOBALES[/bold cyan]"))
     
-    # Tabla de estadísticas principales
     stats_table = Table(show_header=False, style="bold", width=60)
     stats_table.add_column("Métrica", style="cyan", width=25)
     stats_table.add_column("Valor", style="white")
@@ -80,7 +74,6 @@ def mostrar_estadisticas_rich(stats, total_paises):
     
     console.print(stats_table)
     
-    # Tabla de países por continente
     if stats["cantidad_por_continente"]:
         console.print(Panel("🌍 [bold cyan]DISTRIBUCIÓN POR CONTINENTE[/bold cyan]"))
         
@@ -91,17 +84,84 @@ def mostrar_estadisticas_rich(stats, total_paises):
         
         for cont, cant in stats["cantidad_por_continente"].items():
             porcentaje = (cant / total_paises) * 100
-            cont_table.add_row(
-                cont,
-                f"{cant} países",
-                f"{porcentaje:.1f}%"
-            )
+            cont_table.add_row(cont, f"{cant} países", f"{porcentaje:.1f}%")
         
         console.print(cont_table)
 
+def menu_filtrar(paises):
+    """Menú para filtrar países"""
+    console.print(Panel("🌎 [bold yellow]FILTRAR PAÍSES[/bold yellow]"))
+    
+    console.print("1. 🗺️ Por continente")
+    console.print("2. 👥 Por rango de población") 
+    console.print("3. 📏 Por rango de superficie")
+    console.print("4. ↩️ Volver al menú principal")
+    
+    sub_op = input("\nSeleccione opción: ")
+    
+    if sub_op == "1":
+        cont = input("Ingrese el continente: ").strip()
+        if cont:
+            resultados = funciones.filtrar_por_continente(paises, cont)
+            mostrar_paises(resultados, f"Países de: {cont}")
+            
+    elif sub_op == "2":
+        min_p = input("Población mínima: ").strip()
+        max_p = input("Población máxima: ").strip()
+        if min_p or max_p:
+            resultados = funciones.filtrar_por_rango_poblacion(paises, min_p, max_p)
+            mostrar_paises(resultados, f"Población entre {min_p} y {max_p}")
+            
+    elif sub_op == "3":
+        min_s = input("Superficie mínima (km²): ").strip()
+        max_s = input("Superficie máxima (km²): ").strip()
+        if min_s or max_s:
+            resultados = funciones.filtrar_por_rango_superficie(paises, min_s, max_s)
+            mostrar_paises(resultados, f"Superficie entre {min_s} y {max_s} km²")
+            
+    elif sub_op == "4":
+        return
+    else:
+        console.print("[red]❌ Opción inválida[/red]")
+
+def menu_ordenar(paises):
+    """Menú para ordenar países"""
+    console.print(Panel("📈 [bold yellow]ORDENAR PAÍSES[/bold yellow]"))
+    
+    console.print("1. 🔤 Por nombre (A-Z)")
+    console.print("2. 👥 Por población (menor a mayor)")
+    console.print("3. 📏 Por superficie (menor a mayor)")
+    console.print("4. 🔤 Por nombre (Z-A)")
+    console.print("5. 👥 Por población (mayor a menor)")
+    console.print("6. 📏 Por superficie (mayor a menor)")
+    console.print("7. ↩️ Volver al menú principal")
+    
+    sub_op = input("\nSeleccione opción: ")
+    
+    claves = {
+        "1": ("nombre", False, "nombre (A-Z)"),
+        "2": ("poblacion", False, "población (menor a mayor)"),
+        "3": ("superficie", False, "superficie (menor a mayor)"),
+        "4": ("nombre", True, "nombre (Z-A)"),
+        "5": ("poblacion", True, "población (mayor a menor)"), 
+        "6": ("superficie", True, "superficie (mayor a menor)")
+    }
+    
+    if sub_op in claves:
+        clave, descendente, descripcion = claves[sub_op]
+        try:
+            ordenados = funciones.ordenar_paises(paises, clave, descendente)
+            mostrar_paises(ordenados, f"Ordenado por {descripcion}")
+        except Exception as e:
+            console.print(f"[red]❌ Error al ordenar: {e}[/red]")
+            
+    elif sub_op == "7":
+        return
+    else:
+        console.print("[red]❌ Opción inválida[/red]")
+
 def main():
-    """Función principal - Versión mejorada con tablas Rich"""
-    # Inicializar el archivo CSV
+    """Función principal del programa"""
     funciones.inicializar_csv()
     
     while True:
@@ -122,17 +182,23 @@ def main():
                 termino = input("Término de búsqueda: ").strip()
                 paises = funciones.cargar_paises_csv()
                 resultados = funciones.buscar_pais_local(paises, termino)
-                # Mostrar resultados con Rich (nuevo)
-                mostrar_paises_rich(resultados, f"Resultados para: '{termino}'")
+                mostrar_paises(resultados, f"Resultados para: '{termino}'")
                 
             elif opcion == "3":
                 console.print(Panel("📊 [bold yellow]ESTADÍSTICAS[/bold yellow]"))
                 paises = funciones.cargar_paises_csv()
                 stats = funciones.estadisticas(paises)
-                # Mostrar stats con Rich (nuevo)
-                mostrar_estadisticas_rich(stats, len(paises))
+                mostrar_estadisticas(stats, len(paises))
                     
             elif opcion == "4":
+                paises = funciones.cargar_paises_csv()
+                menu_filtrar(paises)
+                
+            elif opcion == "5":
+                paises = funciones.cargar_paises_csv()
+                menu_ordenar(paises)
+                
+            elif opcion == "6":
                 console.print(Panel.fit("[green]¡Gracias por usar el sistema! 👋[/green]", style="bold green"))
                 break
             else:

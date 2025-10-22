@@ -6,4 +6,6 @@ Integracion de Readme para documentar avance del menu.
 
 21: Añadido de Tablas para mejor entendimiento.
 
+22: Funciones nuevas de ordenamiento y para filtrar paises.
+
 &Equipo: Ojeda Lautaro, Fran Tardatti.
