@@ -15,16 +15,27 @@ def mostrar_encabezado():
     ))
 
 def mostrar_menu_principal():
-    """Muestra las opciones principales"""
+    """Muestra todas las opciones disponibles"""
     mostrar_encabezado()
     
-    console.print("[bold]Opciones disponibles:[/bold]")
-    console.print("1. 🔍 Buscar país en API y guardar")
-    console.print("2. 📋 Buscar países en local") 
-    console.print("3. 📊 Ver estadísticas")
-    console.print("4. 🌎 Filtrar países")
-    console.print("5. 📈 Ordenar países")
-    console.print("6. 🚪 Salir")
+    table = Table(show_header=True, header_style="bold yellow", width=70)
+    table.add_column("Opción", style="dim", width=8)
+    table.add_column("Descripción", style="white")
+    
+    menu_items = [
+        ("1", "🔍 Buscar país en API y guardar"),
+        ("2", "📋 Buscar países en local"),
+        ("3", "📊 Ver estadísticas"),
+        ("4", "🌎 Filtrar países"),
+        ("5", "📈 Ordenar países"),
+        ("6", "🗑️ Reiniciar archivo CSV"),
+        ("0", "🚪 Salir del sistema")
+    ]
+    
+    for opcion, descripcion in menu_items:
+        table.add_row(opcion, descripcion)
+    
+    console.print(table)
     console.print()
 
 def mostrar_paises(paises, titulo="LISTA DE PAÍSES"):
@@ -104,6 +115,8 @@ def menu_filtrar(paises):
         if cont:
             resultados = funciones.filtrar_por_continente(paises, cont)
             mostrar_paises(resultados, f"Países de: {cont}")
+        else:
+            console.print("[red]❌ Debe ingresar un continente[/red]")
             
     elif sub_op == "2":
         min_p = input("Población mínima: ").strip()
@@ -111,6 +124,8 @@ def menu_filtrar(paises):
         if min_p or max_p:
             resultados = funciones.filtrar_por_rango_poblacion(paises, min_p, max_p)
             mostrar_paises(resultados, f"Población entre {min_p} y {max_p}")
+        else:
+            console.print("[red]❌ Debe ingresar al menos un valor[/red]")
             
     elif sub_op == "3":
         min_s = input("Superficie mínima (km²): ").strip()
@@ -118,6 +133,8 @@ def menu_filtrar(paises):
         if min_s or max_s:
             resultados = funciones.filtrar_por_rango_superficie(paises, min_s, max_s)
             mostrar_paises(resultados, f"Superficie entre {min_s} y {max_s} km²")
+        else:
+            console.print("[red]❌ Debe ingresar al menos un valor[/red]")
             
     elif sub_op == "4":
         return
@@ -160,6 +177,18 @@ def menu_ordenar(paises):
     else:
         console.print("[red]❌ Opción inválida[/red]")
 
+def reiniciar_csv():
+    """Pide confirmación para reiniciar el archivo CSV"""
+    console.print(Panel("🗑️ [bold yellow]REINICIAR ARCHIVO CSV[/bold yellow]"))
+    console.print("[red]⚠️ Esta acción borrará todos los datos guardados[/red]")
+    
+    confirmar = input("\n¿Está seguro? (s/n): ").lower()
+    if confirmar == 's':
+        funciones.reiniciar_csv()
+        console.print("[green]✅ Archivo reiniciado correctamente[/green]")
+    else:
+        console.print("[yellow]Operación cancelada[/yellow]")
+
 def main():
     """Función principal del programa"""
     funciones.inicializar_csv()
@@ -199,6 +228,9 @@ def main():
                 menu_ordenar(paises)
                 
             elif opcion == "6":
+                reiniciar_csv()
+                
+            elif opcion == "0":
                 console.print(Panel.fit("[green]¡Gracias por usar el sistema! 👋[/green]", style="bold green"))
                 break
             else:
