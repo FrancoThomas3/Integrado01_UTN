@@ -238,4 +238,46 @@ def mostrar_paises(paises, limite=None):
               f"{str(p['superficie']).rjust(col_sup)} | {p['continente']}")
 
 
+# Función para cargar todos los países desde la API y guardarlos en el CSV
+def cargar_todos_los_paises_desde_api():
+    # Especificamos solo los campos que necesitamos para hacer la petición más ligera y evitar errores
+    api_url = 'https://restcountries.com/v3.1/all?fields=name,population,area,continents'
+    print("Iniciando carga masiva de países desde la API...")
+
+    try:
+        response = requests.get(api_url, timeout=30) # Aumentamos el timeout por si la respuesta es grande
+        response.raise_for_status()
+        data = response.json()
+
+        if not data or not isinstance(data, list):
+            print("No se recibieron datos válidos de la API.")
+            return
+
+        paises_a_guardar = []
+        for item in data:
+            nombre_oficial = item.get('name', {}).get('official') or item.get('name', {}).get('common', 'N/A')
+            area = item.get('area') or 0
+            poblacion = item.get('population') or 0
+            continentes = item.get('continents') or ["Desconocido"]
+            continente = continentes[0]
+
+            paises_a_guardar.append({
+                "nombre": nombre_oficial,
+                "poblacion": str(poblacion),
+                "superficie": str(area),
+                "continente": continente
+            })
+
+        # Escribir todos los países en el CSV, sobrescribiendo el contenido
+        with open(ARCHIVO_CSV, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=["nombre", "poblacion", "superficie", "continente"])
+            writer.writeheader()
+            writer.writerows(paises_a_guardar)
+        
+        print(f"✅ ¡Carga completada! Se guardaron {len(paises_a_guardar)} países en '{ARCHIVO_CSV}'.")
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error al conectar con la API: {e}")
+
+
  

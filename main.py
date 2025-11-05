@@ -24,11 +24,12 @@ def mostrar_menu_principal():
     
     menu_items = [
         ("1", "🔍 Buscar país en API y guardar"),
-        ("2", "📋 Buscar países en local"),
-        ("3", "📊 Ver estadísticas"),
-        ("4", "🌎 Filtrar países"),
-        ("5", "📈 Ordenar países"),
-        ("6", "🗑️ Reiniciar archivo CSV"),
+        ("2", "📥 Cargar TODOS los países desde la API (carga inicial)"),
+        ("3", "📋 Buscar país en archivo local"),
+        ("4", "📊 Ver estadísticas"),
+        ("5", "🌎 Filtrar países"),
+        ("6", "📈 Ordenar países"),
+        ("7", "🗑️ Reiniciar archivo CSV"),
         ("0", "🚪 Salir del sistema")
     ]
     
@@ -206,28 +207,37 @@ def main():
                 else:
                     console.print("[red]❌ Debe ingresar un nombre[/red]")
                     
-            elif opcion == "2":
+            elif opcion == "2": # Nueva opción
+                console.print(Panel("📥 [bold yellow]CARGA MASIVA DESDE API[/bold yellow]"))
+                console.print("[yellow]⚠️ Esta acción reemplazará el contenido de 'paises.csv' con datos actualizados de la API.[/yellow]")
+                confirmar = input("\n¿Desea continuar? (s/n): ").lower()
+                if confirmar == 's':
+                    funciones.cargar_todos_los_paises_desde_api()
+                else:
+                    console.print("[cyan]Operación cancelada.[/cyan]")
+
+            elif opcion == "3":
                 console.print(Panel("📋 [bold yellow]BUSCAR EN LOCAL[/bold yellow]"))
                 termino = input("Término de búsqueda: ").strip()
                 paises = funciones.cargar_paises_csv()
                 resultados = funciones.buscar_pais_local(paises, termino)
                 mostrar_paises(resultados, f"Resultados para: '{termino}'")
                 
-            elif opcion == "3":
+            elif opcion == "4":
                 console.print(Panel("📊 [bold yellow]ESTADÍSTICAS[/bold yellow]"))
                 paises = funciones.cargar_paises_csv()
                 stats = funciones.estadisticas(paises)
                 mostrar_estadisticas(stats, len(paises))
                     
-            elif opcion == "4":
+            elif opcion == "5":
                 paises = funciones.cargar_paises_csv()
                 menu_filtrar(paises)
                 
-            elif opcion == "5":
+            elif opcion == "6":
                 paises = funciones.cargar_paises_csv()
                 menu_ordenar(paises)
                 
-            elif opcion == "6":
+            elif opcion == "7":
                 reiniciar_csv()
                 
             elif opcion == "0":
@@ -247,4 +257,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
